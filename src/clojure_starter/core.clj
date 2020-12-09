@@ -1,185 +1,195 @@
 (ns clojure_starter.core)
 
-;; expression de bases
+(do :basics
 
-(+ 1 2)
+    ;; expression de bases
 
-;; l'operation est placée en premier (ici +) suivi des arguments (ici 1 et 2)
+    (+ 1 2)
 
-;; definir une variable globale
+    ;; l'operation est placée en premier (ici +) suivi des arguments (ici 1 et 2)
 
-(def foo 42)
+    ;; definir une variable globale
 
-;; l'utiliser
+    (def foo 42)
 
-(+ foo 1)
+    ;; l'utiliser
 
-;; definir une fonction
+    (+ foo 1)
 
-(defn mult ;; le nom de la fonction
-  [a b] ;; les arguments
-  (* a b)) ;; le retour de la fonction
+    ;; definir une fonction
 
-(mult 2 2)
-;; => 4
+    (defn mult ;; le nom de la fonction
+      [a b] ;; les arguments
+      (* a b)) ;; le retour de la fonction
 
-;; les datastructures
+    (mult 2 2)
+    ;; => 4
 
-;; la map (dictionaire, object)
+    ;; les datastructures
 
-;; notation litérale
+    ;; la map (dictionaire, object)
 
-{:a 1
- :b "hello"}
+    ;; notation litérale
 
-;; stockons la dans une variable
+    {:a 1
+     :b "hello"}
 
-(def my-map
-  {:a 1
-   :b "iop"})
+    ;; stockons la dans une variable
 
-;; rechercher une valeur à l'intérieur d'une map
-(get my-map :a)
+    (def my-map
+      {:a 1
+       :b "iop"})
 
-;; syntax sugar
-(:a my-map)
+    ;; rechercher une valeur à l'intérieur d'une map
+    (get my-map :a)
 
-(assoc my-map :c 90)
+    ;; syntax sugar
+    (:a my-map)
 
-(get-in {:a {:b 1}} [:a :b])
+    (assoc my-map :c 90)
 
-(update-in {:a {:b 1}} [:a :b] inc)
+    (get-in {:a {:b 1}} [:a :b])
 
-;; lists
+    (update-in {:a {:b 1}} [:a :b] inc)
 
-(def my-vec [1 2 3])
-(def my-list (list 1 2 3))
+    ;; lists
 
-(map inc my-list)
+    (def my-vec [1 2 3])
+    (def my-list (list 1 2 3))
 
-(reduce + 0 my-list)
+    (map inc my-list)
 
-;; sets
+    (reduce + 0 my-list)
 
-(def my-set #{:foo :bar :baz})
+    ;; sets
 
-(my-set :io)
-(my-set :foo)
+    (def my-set #{:foo :bar :baz})
 
-;; binding-locaux
+    (my-set :io)
+    (my-set :foo)
 
-(defn mean [xs]
-  (let [count-xs (count xs)
-        sum (reduce + 0 xs)]
-    (/ sum count-xs)))
+    ;; binding-locaux
 
-(mean (range 10))
+    (defn mean [xs]
+      (let [count-xs (count xs)
+            sum (reduce + 0 xs)]
+        (/ sum count-xs)))
 
-(defn postfix->prefix [x]
+    (mean (range 10)))
 
-  (if (list? x)
+(do :macros
 
-    (let [last-x (last x)
-          args (butlast x)]
-      (cons last-x (map postfix->prefix args)))
+    (defn postfix->prefix [x]
 
-    x))
+      (if (list? x)
 
-(postfix->prefix '(2 3 (9 (9 8 7 -) *) +))
+        (let [last-x (last x)
+              args (butlast x)]
+          (cons last-x (map postfix->prefix args)))
 
-(defmacro postfix [x]
-  (postfix->prefix x))
+        x))
 
-(macroexpand-1
-  '(postfix
-     (2 3 (9 (9 8 7 -) *) +)))
+    (postfix->prefix '(2 3 (9 (9 8 7 -) *) +))
 
-(defn map-values [f m]
+    (defmacro postfix [x]
+      (postfix->prefix x))
 
-  (let [entries
-        (map (fn [e]
-               (vector (key e) (f (val e))))
-             (seq m))]
+    (macroexpand-1
+      '(postfix
+         (2 3 (9 (9 8 7 -) *) +))))
 
-    (into {} entries)))
+(do :map-values
 
-(map-values inc {:a 1 :b 2})
+    (defn map-values [f m]
 
-(merge {:a 1 :b 2}
-       {:b 3 :c 5}
-       {:c 3 :d 5})
+      (let [entries
+            (map (fn [e]
+                   (vector (key e) (f (val e))))
+                 (seq m))]
 
-(def fifo ())
+        (into {} entries)))
 
-(defn tak [fifo]
-  [(first fifo) (rest fifo)])
+    (map-values inc {:a 1 :b 2})
 
-(defn put [fifo x]
-  (cons x fifo))
+    (merge {:a 1 :b 2}
+           {:b 3 :c 5}
+           {:c 3 :d 5}))
 
-(defn putend [fifo x]
-  (concat fifo (list x)))
+(do :fifo
 
-(put fifo 1)
+    (def fifo ())
 
-(def fifo2
-  (-> fifo
-      (put 1)
-      (put 3)
-      (put 8)))
+    (defn tak [fifo]
+      [(first fifo) (rest fifo)])
 
-(tak fifo2)
+    (defn put [fifo x]
+      (cons x fifo))
 
-(def fifo3 (atom ()))
+    (defn putend [fifo x]
+      (concat fifo (list x)))
 
-(def my-num (atom 1))
+    (put fifo 1)
 
-(deref my-num)
+    (def fifo2
+      (-> fifo
+          (put 1)
+          (put 3)
+          (put 8)))
 
-(reset! my-num 10)
+    (tak fifo2))
 
-(swap! my-num inc)
+(do :atoms
 
-(defprotocol IMap
-  (fmap [this f]))
+    (def my-num (atom 1))
 
-(extend-protocol IMap
-  clojure.lang.PersistentList
-  (fmap [this f] (map f this))
-  clojure.lang.PersistentVector
-  (fmap [this f] (mapv f this))
-  clojure.lang.PersistentArrayMap
-  (fmap [this f] (map-values f this)))
+    (deref my-num)
 
-(fmap (list 1 2 3) inc)
-;=> (list 2 3 4)
+    (reset! my-num 10)
 
-(fmap [1 2 3] dec)
-;; [0 1 2]
+    (swap! my-num inc))
 
-(fmap {:a 1 :b 2} inc)
-;;=> {:a 2 :b 3}
+(do :proto
 
-(defn map-deep [this f]
-  (if (satisfies? IMap this)
-    (fmap this (fn [x] (map-deep x f)))
-    (f this)))
+    (defprotocol IMap
+      (fmap [this f]))
 
-(map-deep {:a {:b {:c 1}}}
-          inc)
+    (extend-protocol IMap
+      clojure.lang.PersistentList
+      (fmap [this f] (map f this))
+      clojure.lang.PersistentVector
+      (fmap [this f] (mapv f this))
+      clojure.lang.PersistentArrayMap
+      (fmap [this f] (map-values f this)))
 
-(map-deep [1 2 [2 3 {:a 2 :b [{:c 52} (list 1 2 3)]}]]
-          inc)
+    (fmap (list 1 2 3) inc)
+    ;=> (list 2 3 4)
 
-(defrecord Point [x y]
-  IMap
-  (fmap [this f] (Point. (f x) (f y))))
+    (fmap [1 2 3] dec)
+    ;; [0 1 2]
 
-(fmap (new Point 1 2) inc)
+    (fmap {:a 1 :b 2} inc)
+    ;;=> {:a 2 :b 3}
 
-(map-deep {:a {:b (new Point 1 2)}}
-          inc)
+    (defn map-deep [this f]
+      (if (satisfies? IMap this)
+        (fmap this (fn [x] (map-deep x f)))
+        (f this)))
 
+    (map-deep {:a {:b {:c 1}}}
+              inc)
+
+    (map-deep [1 2 [2 3 {:a 2 :b [{:c 52} (list 1 2 3)]}]]
+              inc)
+
+    (defrecord Point [x y]
+      IMap
+      (fmap [this f] (Point. (f x) (f y))))
+
+    (fmap (new Point 1 2) inc)
+
+    (map-deep {:a {:b (new Point 1 2)}}
+              inc)
+    )
 
 
 
