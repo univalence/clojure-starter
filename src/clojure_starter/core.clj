@@ -84,20 +84,20 @@
         ;; ce qu'on veut écrire
 
         '(unless (test qqchose)
-                 (computate if test is false)
-                 (computate if test is true))
+                 (compute if test is false)
+                 (compute if test is true))
 
         ;; ce qui sera émit
 
         '(if (not (test qqchose))
-           (computate if test is false)
-           (computate if test is true))
+           (compute if test is false)
+           (compute if test is true))
 
         ;; ou
 
         '(if (test qqchose)
-           (computate if test is true)
-           (computate if test is false))
+           (compute if test is true)
+           (compute if test is false))
 
         ;; implementation
 
@@ -109,8 +109,8 @@
                 true-branch))
 
         (macroexpand '(unless (test qqchose)
-                              (computate if test is false)
-                              (computate if test is true)))
+                              (compute if test is false)
+                              (compute if test is true)))
 
         (unless (pos? -1)
                 :yop
@@ -255,7 +255,3 @@
     (map inc (map inc (range 0 5)))
 
     )
-
-;; ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
