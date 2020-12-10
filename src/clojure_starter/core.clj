@@ -79,24 +79,63 @@
 
 (do :macros
 
-    (defn postfix->prefix [x]
+    (do :unless
 
-      (if (list? x)
+        ;; ce qu'on veut écrire
 
-        (let [last-x (last x)
-              args (butlast x)]
-          (cons last-x (map postfix->prefix args)))
+        '(unless (test qqchose)
+                 (computate if test is false)
+                 (computate if test is true))
 
-        x))
+        ;; ce qui sera émit
 
-    (postfix->prefix '(2 3 (9 (9 8 7 -) *) +))
+        '(if (not (test qqchose))
+           (computate if test is false)
+           (computate if test is true))
 
-    (defmacro postfix [x]
-      (postfix->prefix x))
+        ;; ou
 
-    (macroexpand-1
-      '(postfix
-         (2 3 (9 (9 8 7 -) *) +))))
+        '(if (test qqchose)
+           (computate if test is true)
+           (computate if test is false))
+
+        ;; implementation
+
+        (defmacro unless
+          [test false-branch true-branch]
+          (list 'if
+                (list `not test)
+                false-branch
+                true-branch))
+
+        (macroexpand '(unless (test qqchose)
+                              (computate if test is false)
+                              (computate if test is true)))
+
+        (unless (pos? -1)
+                :yop
+                :nop))
+
+    (do :postfix
+
+        (defn postfix->prefix [x]
+
+          (if (list? x)
+
+            (let [last-x (last x)
+                  args (butlast x)]
+              (cons last-x (map postfix->prefix args)))
+
+            x))
+
+        (postfix->prefix '(2 3 (9 (9 8 7 -) *) +))
+
+        (defmacro postfix [x]
+          (postfix->prefix x))
+
+        (macroexpand-1
+          '(postfix
+             (2 3 (9 (9 8 7 -) *) +)))))
 
 (do :map-values
 
@@ -191,5 +230,32 @@
               inc)
     )
 
+(do :threading-macros-examples
+
+    (-> {}
+        (assoc :a 1)
+        (assoc :b 2)
+        (merge {:b 3 :c 4}))
+
+    ;; expands to
+
+    (merge
+      (assoc
+        (assoc {} :a 1)
+        :b 2)
+      {:b 3 :c 4})
+
+
+    (->> (range 0 5)
+         (map inc)
+         (map inc))
+
+    ;; expand to
+
+    (map inc (map inc (range 0 5)))
+
+    )
+
+;; ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
