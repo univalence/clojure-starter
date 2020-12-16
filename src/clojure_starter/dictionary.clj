@@ -25,13 +25,19 @@
 ;; and
 (and there-are-pirates there-are-fish)
 
+;; TODO if-let when-let
+
 ;; =====================NUMBERS======================
 ;; rational
 (reduce + 0 (list 1/2 2/4))
 
+;; module MATH
+
 ;; =====================STRINGS======================
 ;; str
 (str "I can eat " 10 " sushi")
+
+;; TODO see clojure.string
 
 ;; =====================MAPS======================
 (def personal-taste {:california-roll true
@@ -48,6 +54,25 @@
 ;; get-in
 (get-in nested (list :nested :ok))
 
+assoc
+
+assoc-in
+
+update
+update-in
+
+merge
+
+zipmap
+
+keys
+vals
+
+conj
+into
+
+;; à implementer: deep-merge
+
 ;; =====================VECTORS=======================
 (def fish-vector ["blowfish" "lowfish" "owfish"])
 ;; get
@@ -55,7 +80,20 @@
 ;; map
 (map clojure.string/upper-case fish-vector)
 
+assoc
+update
+assoc-in
+update-in
+conj
+into
+get-in
+peek
+pop
+
 ;; =====================SYMBOLS=====================
+
+;; TODO une section pour backquote avec plus d'exemple
+
 ;; quote backquote unquote unquote-splice
 (def expr-with-quotes (let [y '+
                             z (range 10)]
@@ -63,6 +101,7 @@
 (eval expr-with-quotes)
 
 ;; =====================SETS=====================
+;; TODO voir clojure.set
 ;; litteral
 #{1 2}
 ;; ops
@@ -102,9 +141,14 @@
 ;; dynamic vars
 
 ;; =====================LISTS=====================
+cons
+concat
+first rest next
+
 ;; ---------cons nth conj ----------
 
 ;; =====================CORE FUNCTIONS=====================
+;; TODO bouger la plupart dans une partie "Sequences"
 ;; map
 (map inc (range 3))
 ;; reduce
@@ -159,6 +203,11 @@
 (repeatedly 5 #(rand-int 11))
 
 ;; =====================MACROS=====================
+
+;; TODO  reimplementer: or, and,  when, when-not, if-let, when-let, cond
+;; essayer d'implementer cond-let
+;; implementer 'let avec uniquement 'fn (sans destructuration)
+
 (defmacro infix-and-turn-plus-to-minus [operation]
           (let [[op1 fun op2] operation]
                (cond
@@ -208,9 +257,15 @@
 ;; =====================DEALING WITH LIBS=====================
 ;; =====================KEYWORDS=====================
 ;; =====================FUNCTIONS=====================
+partial
+complement
+iterate
+juxt
+comp
 ;; ---------Multiple arrity----------
 ;; =====================LET=====================
 ;; =====================LAMBDA=====================
 ;; =====================LOOPS=====================
 ;; =====================REGEX=====================
 ;; =====================REDUCERS=====================
+;; ==================INTEROP========================
