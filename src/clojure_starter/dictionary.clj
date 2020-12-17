@@ -24,24 +24,53 @@
 (or there-are-pirates there-are-fish)
 ;; and
 (and there-are-pirates there-are-fish)
-
-;; TODO if-let when-let
+;; if-let
+(defn should-i-go-swimming [pirate-presence]
+      (if-let [x pirate-presence]
+              "Hell no !"
+              "No pirates, all good"))
+(should-i-go-swimming there-are-pirates)
+;; when-let
+(defn speak-loudly [pirate-presence]
+      (when-let [presence (not pirate-presence)]
+                "Blablabla"))
+(speak-loudly there-are-pirates)
 
 ;; =====================NUMBERS======================
 ;; rational
 (reduce + 0 (list 1/2 2/4))
-
 ;; module MATH
+(Math/pow 2 5)
+(Math/max 2 5)
 
 ;; =====================STRINGS======================
 ;; str
 (str "I can eat " 10 " sushi")
-
-;; TODO see clojure.string
+;; blank?
+(clojure.string/capitalize "hello")
+(clojure.string/ends-with? "hello" "lo")
+(clojure.string/escape "test" {\e "oa"})
+(clojure.string/includes? "hello" "hell")
+(clojure.string/index-of "hello" "e")
+(clojure.string/join ", " ["hello" "world"])
+(clojure.string/last-index-of "hello" "l")
+(clojure.string/lower-case "HELLO")
+(clojure.string/replace "I like spinach because spinach are healthy" #"spinach" "sushi")
+(clojure.string/replace-first "I like spinach because spinach are healthy" #"spinach" "sushi")
+(clojure.string/reverse "hello")
+(clojure.string/split "hello world test" #" ")
+(clojure.string/split-lines)
+(clojure.string/starts-with?)
+(clojure.string/trim)
+(clojure.string/trim-newline)
+(clojure.string/triml)
+(clojure.string/trimr)
+(clojure.string/upper-case)
 
 ;; =====================MAPS======================
 (def personal-taste {:california-roll true
-                     :raw-squid       false})
+                     :raw-squid       false
+                     :lower-case-fish "fish"})
 ;; get
 (get personal-taste :california-roll)
 (:california-roll personal-taste)
@@ -53,25 +82,31 @@
                       :bitch "please"}})
 ;; get-in
 (get-in nested (list :nested :ok))
-
-assoc
-
-assoc-in
-
-update
-update-in
-
-merge
-
-zipmap
-
-keys
-vals
-
-conj
-into
-
+;; assoc
+(assoc personal-taste :sushi true)
+;; assoc-in
+(assoc-in nested [:nested :new-key] "value")
+;; update
+(update personal-taste :lower-case-fish #(clojure.string/capitalize %))
+;; update-in
+(update-in nested [:nested :ok] #(clojure.string/capitalize %))
+;; merge
+(merge {:a "blowfish" :b "rat"} {:b "clown-fish"})
+;; zipmap
+(zipmap [:a :b :c] ["blowfish" "catfish" "tuna"])
+;; keys
+(keys (zipmap [:a :b :c] ["blowfish" "catfish" "tuna"]))
+;; vals
+(vals (zipmap [:a :b :c] ["blowfish" "catfish" "tuna"]))
+;; conj
+(conj {:a "blowfish" :b "tuna"} {:c "catfish"})
+(conj {1 2 3 4} [5 6])
+;; into
+(into (hash-map) [[:a "blowfish"] [:c "blowfish"] [:b "blowfish"]])
 ;; à implementer: deep-merge
+(merge {:a "blowfish" :b {:a "rat"}} {:b {:b "clown-fish"}})
+(defn deep-merge [map path]
+      () )
 
 ;; =====================VECTORS=======================
 (def fish-vector ["blowfish" "lowfish" "owfish"])
