@@ -1,8 +1,12 @@
-(ns clojure-starter.hello-asm
+(ns supaopt.visitor
   (:import (org.objectweb.asm ClassReader ClassVisitor FieldVisitor MethodVisitor Opcodes)
            (org.objectweb.asm.util TraceClassVisitor)
            (java.io PrintWriter))
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
+            [clojure.pprint :as pp]))
+
+
 
 (defn file->bytes [file]
   (with-open [xin (io/input-stream file)
@@ -18,39 +22,23 @@
 
 (def trace-class-visitor (new TraceClassVisitor print-writer))
 
-(def MethodVisitorProxy (get-proxy-class MethodVisitor))
+(defn method-visitor [mv]
+  (proxy [MethodVisitor] [Opcodes/ASM9 mv]))
 
-(defn meth-viz
-  ([] (construct-proxy MethodVisitorProxy Opcodes/ASM9))
-  ([id] (construct-proxy MethodVisitorProxy id))
-  ([id mv] (construct-proxy MethodVisitorProxy id mv)))
-
-(def FieldVisitorProxy (get-proxy-class FieldVisitor))
-
-(defn field-viz
-  ([] (construct-proxy FieldVisitorProxy Opcodes/ASM9))
-  ([id] (construct-proxy FieldVisitorProxy id))
-  ([id mv] (construct-proxy FieldVisitorProxy id mv)))
-
-(def ClassVisitorProxy (get-proxy-class ClassVisitor))
-
-(defn class-viz
-  ([] (construct-proxy ClassVisitorProxy Opcodes/ASM9))
-  ([id] (construct-proxy ClassVisitorProxy id))
-  ([id mv] (construct-proxy ClassVisitorProxy id mv)))
-
-(class-viz)
+(defn field-visitor [mv]
+  (proxy [FieldVisitor] [Opcodes/ASM9 mv]))
 
 (def class-visitor
   (proxy [ClassVisitor] [Opcodes/ASM9]
     (visitField [access name desc signature value]
-      (println [access name desc signature value])
-      (field-viz))
+      (spit "field.edn" [access name desc signature value])
+      (field-visitor (proxy-super visitField access name desc signature value)))
     (visitMethod [access name desc signature exceptions]
-      (println [access name desc signature exceptions])
-      (meth-viz))))
+      (spit "method.edn" [access name desc signature exceptions])
+      (method-visitor (proxy-super visitMethod access name desc signature exceptions)))))
 
-(.accept class-reader class-visitor ClassReader/SKIP_DEBUG)
+(defn visit []
+  (.accept class-reader class-visitor ClassReader/SKIP_DEBUG))
 
 (comment :proxy-abstract
 
@@ -72,16 +60,6 @@
 
 (comment :old-input (def path (new java.nio.file.Path "out/AsmHelloWorld.class"))
          (def input (java.nio.file.Files/newInputStream path []))) ;;incorrect arrity || var input = Files.newInputStream (path)
-
-(comment :JAVA (quote try (var input = Files.newInputStream (path)) {
-                                                                     ClassReader classReader = new ClassReader (input) ;
-                                                                     PrintWriter printWriter = new PrintWriter (System.out) ;
-                                                                     TraceClassVisitor traceClassVisitor = new TraceClassVisitor (printWriter) ;
-                                                                     MyClassVisitor myClassVisitor = new MyClassVisitor (traceClassVisitor) ;
-                                                                     classReader.accept (myClassVisitor, ClassReader.SKIP_DEBUG) ;
-                                                                     } catch (Exception e) {
-                                                                                            throw new IOException () ;
-                                                                                            }))
 
 (comment :rubbish
 
@@ -168,3 +146,14 @@
          user=>
          )
 
+(comment
+
+  (def ClassVisitorProxy (get-proxy-class ClassVisitor))
+
+  (defn class-viz
+    ([] (construct-proxy ClassVisitorProxy Opcodes/ASM9))
+    ([id] (construct-proxy ClassVisitorProxy id))
+    ([id mv] (construct-proxy ClassVisitorProxy id mv)))
+
+  #_(class-viz)
+  )
