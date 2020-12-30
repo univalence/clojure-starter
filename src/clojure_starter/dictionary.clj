@@ -1,4 +1,4 @@
-(ns test-clojure.Dictionnary
+(ns clojure_starter.dictionnary
     (:require [clojure.core.async
                :as a
                :refer [>! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]))
@@ -347,7 +347,93 @@
 ;; =====================MACROS=====================
 
 ;; essayer d'implementer cond-let
-;; implementer 'let avec uniquement 'fn (sans destructuration)
+;; single binding
+
+(comment :experiment
+         (defn truc [arg]
+               (cond-let
+                 [x (= 1 2)] (println x)
+                 [y (= 2 2)
+                  z (= 3 3)] (println y z)
+                 :else (println "else")))
+         (truc)                                             ;; truetrue
+         )
+
+;; for 2d binding vector and code in list
+(defmacro custom-cond-let
+          ([[id test] code-list & next-body]
+           `(let [tmp# ~test]
+                 (if tmp#
+                   (let [~id tmp#] ~@code-list)
+                   (custom-cond-let ~@next-body))))
+          ([] nil)
+          )
+
+(defn truc []
+      (custom-cond-let
+        [x (= 1 2)] (println x)
+        [y :hello] (println y)))
+(truc)
+
+;; -----------------------------------------------
+
+(defmacro custom-if-let [[id test] then else]
+          `(let [tmp# ~test]
+                (if tmp#
+                  (let [~id tmp#] ~then)
+                  ~else)))
+
+(defn custom-if-let-demo [arg]
+      (custom-if-let [x arg] (println x) (println "else")))
+
+(custom-if-let-demo :hello)
+
+;; -----------------------------------------------
+
+
+;; implementer 'let avec uniquement 'fn (sans destructuration)`
+
+
+(defmacro custom-let-1 [bindings & code]
+          `((fn [~'x ~'y] ~@code) :hello :hola))
+
+(first (partition 2 ['x :hello 'y :hola 'z :bonjour]))
+
+(defmacro custom-let-2 [bindings & code]
+          `((fn [~(first bindings)] ~@code) ~(last bindings))
+
+          )
+
+(defmacro custom-let-3 [bindings & code]
+
+          (if (empty? bindings)
+            `(do ~@code)
+            `((fn [~(first ~(first ~(partition 2 bindings)))]
+                  ~(custom-let ~(rest ~(partition 2 bindings)) code))
+              ~(last ~(first ~(partition 2 bindings))))
+            )
+          )
+
+
+(defmacro custom-let [bindings & body]
+          (reduce (fn [ret [sym expr]] `((fn [~sym] ~ret) ~expr))
+                  `(do ~@body)
+                  (reverse (partition 2 bindings))))
+
+
+(custom-let [x :hello y :hola] (println y) (println x))
+
+(custom-let [a 1 b (inc a)] (+ a b))
+
+
+;; arrity 1
+(macroexpand (quote (custom-let-2 [a 1] (+ 1 a))))
+(custom-let [a 1] (+ 1 a))
+((fn [a] (+ 1 a)) 1)
+;; arrity 2
+((fn [a] ((fn [b] (+ a b)) (inc a))) 1)
+
+(custom-let [x :hello y :hola] (println y) (println x))
 
 ;; -----------------------------------------------
 
@@ -384,13 +470,29 @@
                            (not ~current)
                            :else (custom-or ~@conds))))
 
+         (defmacro custom-or-3
+                   ([] nil)
+                   ([cond1] cond1)
+                   ([cond1 & others]
+                    `(let [curr ~cond1]
+                          (if curr curr (custom-or-3 ~@others)))))
+
+         (defmacro custom-or-4
+                   ([] nil)
+                   ([cond1] cond1)
+                   ([cond1 & others]
+                    `(let [evaluation ~cond1]
+                          (if evaluation evaluation (custom-or-4 ~@others)))))
+
          (defn arities? ([] 0) ([x] 1) ([x & other] "more than one"))
          (arities? :hello :world))
 
 (defmacro custom-or
           ([] nil)
-          ([single] single)
-          ([cond1 & others] `(if ~cond1 ~cond1 (custom-or ~@others))))
+          ([cond1] cond1)
+          ([cond1 & others]
+           `(let [value# ~cond1]
+                 (if value# value# (or ~@others)))))
 
 (custom-or (pos? -1) (pos? -1))
 
@@ -407,24 +509,13 @@
           )
 
 (custom-when-not (pos? -1) (println "truc") (println "truc"))
-;; -----------------------------------------------
 
-(defmacro custom-if-let [[id test] then else]
-          (let [tmp test]
-               `(if ~tmp
-                  (let [~id ~tmp] ~then)
-                  ~else)))
-
-(defn custom-if-let-demo [arg]
-      (custom-if-let [x arg] (println x) (println "else")))
-
-(custom-if-let-demo :hello)
 ;; -----------------------------------------------
 
 (defmacro custom-when-let [[id test] & actions]
-          (let [tmp test]
-               `(if ~tmp
-                  (let [~id ~tmp] ~@actions))))
+          `(let [tmp# ~test]
+                (if tmp#
+                  (let [~id tmp#] ~@actions))))
 
 (custom-when-let [x true] (println x) (println x))
 ;; -----------------------------------------------
@@ -471,11 +562,23 @@
 
 (force my-delay)
 
+(do (def who-let-the-dogs-out
+      (delay (let [words (future (Thread/sleep 3000) :who-whowhowho)]
+                  (println "it took 3sec to compute the rest of the song: " @words)
+                  @words)))
+
+    (println "we need a catchy song")
+    (force who-let-the-dogs-out)                             ;; first evaluation
+    @who-let-the-dogs-out                                   ;; cached value
+    (time @who-let-the-dogs-out)
+    )
+
 ;; =====================PROMISES==================
 
-(def my-promise (promise))
-(deliver my-promise (+ 1 2))
-(println @my-promise)
+(do (def box (promise))
+    (future (Thread/sleep 3000) (println "Let's sneek a peek inside the box : " @box))
+    (deliver box :item-inside-box)
+    (println "hello from main thread"))
 
 ;; =====================VARS=====================
 (comment "Vars are for thread local isolated identities with a shared default value.")
@@ -501,5 +604,3 @@
 
 ;; =====================TRANSDUCERS===============
 ;; =====================LAZY-SEQ==================
-
-
